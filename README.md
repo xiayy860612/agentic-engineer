@@ -1,6 +1,10 @@
 # agentic-engineer
 
-## 外部工具依赖
+## 外部依赖
+
+- superpowers
+
+### 工具依赖
 
 使用 `.claude/commands/` 中的指令前，须在本机安装并配置以下工具：
 

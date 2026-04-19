@@ -8,7 +8,8 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: "html",
   use: {
-    baseURL: "http://localhost:3000",
+    // Use 127.0.0.1 (not localhost) so the browser treats admin-web and Auth (127.0.0.1:8000) as same-site for cookies.
+    baseURL: "http://127.0.0.1:3000",
     trace: "on-first-retry",
   },
   projects: [
@@ -24,10 +25,20 @@ export default defineConfig({
       use: { ...devices["iPhone 13"] },
     },
   ],
-  webServer: {
-    command: "pnpm --dir ../web dev",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  webServer: [
+    {
+      command: "bash ./scripts/start-auth-for-playwright.sh",
+      cwd: __dirname,
+      url: "http://127.0.0.1:8000/openapi.json",
+      reuseExistingServer: !process.env.CI,
+      timeout: 180000,
+    },
+    {
+      command:
+        "env NEXT_PUBLIC_AUTH_API_BASE_URL=http://127.0.0.1:8000 pnpm --dir ../admin-web exec next dev -p 3000 -H 127.0.0.1",
+      url: "http://127.0.0.1:3000",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120000,
+    },
+  ],
 });
