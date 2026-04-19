@@ -64,6 +64,6 @@ pnpm test --debug
 
 ## 配置说明
 
-- `playwright.config.ts` 中 `webServer` 配置会自动启动 `web/` 的 dev server
+- `playwright.config.ts` 中 `webServer` 配置会自动启动 `admin-web/` 的 dev server
 - `baseURL` 设为 `http://localhost:3000`
 - CI 环境：`CI=true` 时启用 `forbidOnly` 与 2 次重试

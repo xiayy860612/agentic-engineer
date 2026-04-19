@@ -6,7 +6,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ---
 
-# AGENTS — `web/` 子项目
+# AGENTS — `admin-web/` 子项目
 
 面向人类协作者与 AI 代理的开发约定。修改本文件前须先阅读根目录 `AGENTS.md`。
 
@@ -25,7 +25,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## 目录结构
 
 ```
-web/
+admin-web/
 ├── src/
 │   ├── app/                  # App Router 页面与 layout
 │   ├── components/
@@ -63,6 +63,9 @@ pnpm tsc --noEmit
 # ESLint
 pnpm lint
 
+# 单元测试（Vitest）
+pnpm test
+
 # 构建（验证编译无错误）
 pnpm build
 ```
@@ -71,6 +74,7 @@ pnpm build
 
 | 变量 | 说明 |
 |------|------|
+| `NEXT_PUBLIC_AUTH_API_BASE_URL` | Auth 服务对外 origin（`scheme://host:port`，无尾斜杠）。未设置时开发默认 `http://127.0.0.1:8000`；生产须显式配置且与 Auth 侧 `ADMIN_WEB_ORIGIN`（admin-web 部署 origin）成对一致以便 CORS + Cookie。 |
 | `CI=true` | CI 环境标志（跳过 TTY 确认等） |
 
 ## 响应式断点约定
