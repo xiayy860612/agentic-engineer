@@ -11,6 +11,7 @@ class _SessionRecord:
     user_id: int
     username: str
     expires_at: float
+    roles: list[str]
 
 
 class InMemorySessionStore:
@@ -21,13 +22,16 @@ class InMemorySessionStore:
         self._by_token: dict[str, _SessionRecord] = {}
         self._lock = threading.Lock()
 
-    def create(self, user_id: int, username: str) -> str:
+    def create(self, user_id: int, username: str, roles: list[str] = None) -> str:
+        if roles is None:
+            roles = []
         token = secrets.token_urlsafe(32)
         now = time.monotonic()
         record = _SessionRecord(
             user_id=user_id,
             username=username,
             expires_at=now + float(self._ttl),
+            roles=roles,
         )
         with self._lock:
             self._by_token[token] = record

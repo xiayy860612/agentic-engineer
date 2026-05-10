@@ -43,7 +43,7 @@ def login(
         return JSONResponse(status_code=401, content=INVALID_CREDENTIALS_BODY)
 
     store = request.app.state.session_store
-    token = store.create(user.id, user.username)
+    token = store.create(user.id, user.username, roles=list(user.roles))
     resp = JSONResponse(status_code=200, content={"success": True})
     resp.set_cookie(
         key="ae_session",
