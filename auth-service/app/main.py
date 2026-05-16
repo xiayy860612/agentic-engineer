@@ -7,6 +7,7 @@ from app.bootstrap import bootstrap_admin
 from app.config import get_settings
 from app.database import init_db
 from app.routers import auth as auth_router
+from app.routers import users as users_router
 from app.session_store import InMemorySessionStore
 
 
@@ -35,6 +36,7 @@ def create_app() -> FastAPI:
         allow_headers=["Content-Type", "Cookie", "Authorization"],
     )
     app.include_router(auth_router.router)
+    app.include_router(users_router.router)
     return app
 
 
