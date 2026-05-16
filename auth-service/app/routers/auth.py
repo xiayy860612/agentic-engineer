@@ -43,7 +43,7 @@ def login(
         return JSONResponse(status_code=401, content=INVALID_CREDENTIALS_BODY)
 
     store = request.app.state.session_store
-    token = store.create(user.id, user.username, roles=list(user.roles))
+    token = store.create(user.id, user.username, roles=[r.name for r in user.roles])
     resp = JSONResponse(status_code=200, content={"success": True})
     resp.set_cookie(
         key="ae_session",
@@ -98,4 +98,4 @@ def read_session(request: Request) -> JSONResponse:
             status_code=401,
             content={"error": "unauthenticated", "message": "未登录或会话已失效"},
         )
-    return JSONResponse(status_code=200, content={"username": rec.username})
+    return JSONResponse(status_code=200, content={"username": rec.username, "roles": rec.roles})

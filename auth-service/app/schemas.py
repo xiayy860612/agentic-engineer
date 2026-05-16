@@ -17,3 +17,4 @@ class ErrorResponse(BaseModel):
 
 class SessionResponse(BaseModel):
     username: str
+    roles: list[str]
