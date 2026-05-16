@@ -83,3 +83,30 @@ def test_login_accepts_user_role(client):
     )
     assert res.status_code == 200
     assert res.json()["success"] is True
+
+
+def test_login_inactive_user_returns_403(client):
+    from app.database import get_session_local, seed_roles_and_admin
+    from app.models import User, Role
+    from app.security import hash_password
+    from sqlalchemy import select
+
+    seed_roles_and_admin()
+
+    db = get_session_local()()
+    try:
+        user_role = db.scalars(select(Role).where(Role.name == "user")).first()
+        u = User(username="inactive_jane", password_hash=hash_password("pass123"), is_active=False)
+        if user_role:
+            u.roles.append(user_role)
+        db.add(u)
+        db.commit()
+    finally:
+        db.close()
+
+    res = client.post(
+        "/api/v1/auth/login",
+        json={"username": "inactive_jane", "password": "pass123"},
+    )
+    assert res.status_code == 403
+    assert res.json()["error"] == "account_disabled"

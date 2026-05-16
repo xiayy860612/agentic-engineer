@@ -41,6 +41,12 @@ def login(
     if user is None or not verify_password(payload.password, user.password_hash):
         return JSONResponse(status_code=401, content=INVALID_CREDENTIALS_BODY)
 
+    if not user.is_active:
+        return JSONResponse(
+            status_code=403,
+            content={"error": "account_disabled", "message": "账户已停用"},
+        )
+
     store = request.app.state.session_store
     token = store.create(user.id, user.username, roles=[r.name for r in user.roles])
     resp = JSONResponse(status_code=200, content={"success": True})
