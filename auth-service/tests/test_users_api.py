@@ -150,3 +150,43 @@ def test_get_user_not_found(client):
     )
     res = client.get("/api/v1/users/99999")
     assert res.status_code == 404
+
+
+def test_get_user_single(client):
+    """GET /api/v1/users/{id} returns a single user (line 81)."""
+    seed_roles_and_admin()
+    client.post(
+        "/api/v1/auth/login",
+        json={"username": "admin", "password": "admin_secret"},
+    )
+    create_res = client.post(
+        "/api/v1/users",
+        json={"username": "bob", "password": "pass123", "role": "user"},
+    )
+    user_id = create_res.json()["id"]
+    res = client.get(f"/api/v1/users/{user_id}")
+    assert res.status_code == 200
+    assert res.json()["username"] == "bob"
+
+
+def test_update_user_role_to_different_role(client):
+    """Updating a user's role exercises the role-reassignment branch in update_user."""
+    seed_roles_and_admin()
+    client.post(
+        "/api/v1/auth/login",
+        json={"username": "admin", "password": "admin_secret"},
+    )
+    # Create user as 'user'
+    create_res = client.post(
+        "/api/v1/users",
+        json={"username": "charlie", "password": "pass123", "role": "user"},
+    )
+    user_id = create_res.json()["id"]
+
+    # Update role to 'admin' — exercises lines 102-111
+    res = client.put(
+        f"/api/v1/users/{user_id}",
+        json={"role": "admin"},
+    )
+    assert res.status_code == 200
+    assert res.json()["role"] == "admin"
