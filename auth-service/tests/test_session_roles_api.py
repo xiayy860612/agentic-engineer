@@ -50,3 +50,36 @@ def test_session_unauthenticated_returns_401(client):
     res = client.get("/api/v1/auth/session")
     assert res.status_code == 401
     assert res.json()["error"] == "unauthenticated"
+
+
+def test_login_accepts_user_role(client):
+    from app.database import get_session_local, init_db
+    from app.models import User, Role
+    from app.security import hash_password
+
+    init_db()
+
+    db = get_session_local()()
+    try:
+        admin_role = Role(name="admin")
+        user_role = Role(name="user")
+        db.add(admin_role)
+        db.add(user_role)
+        db.commit()
+
+        regular_user = User(
+            username="regular_john",
+            password_hash=hash_password("pass123"),
+        )
+        regular_user.roles.append(user_role)
+        db.add(regular_user)
+        db.commit()
+    finally:
+        db.close()
+
+    res = client.post(
+        "/api/v1/auth/login",
+        json={"username": "regular_john", "password": "pass123"},
+    )
+    assert res.status_code == 200
+    assert res.json()["success"] is True

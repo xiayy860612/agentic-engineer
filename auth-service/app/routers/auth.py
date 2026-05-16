@@ -37,7 +37,6 @@ def login(
     request: Request,
     db: Annotated[Session, Depends(get_db)],
 ) -> JSONResponse:
-    settings = get_settings()
     user = db.scalars(select(User).where(User.username == payload.username)).first()
     if user is None or not verify_password(payload.password, user.password_hash):
         return JSONResponse(status_code=401, content=INVALID_CREDENTIALS_BODY)
@@ -49,10 +48,10 @@ def login(
         key="ae_session",
         value=token,
         httponly=True,
-        secure=settings.auth_cookie_secure,
+        secure=get_settings().auth_cookie_secure,
         samesite="lax",
         path="/",
-        max_age=settings.auth_session_ttl_seconds,
+        max_age=get_settings().auth_session_ttl_seconds,
     )
     return resp
 
