@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     auth_database_url: str = "sqlite:///./data/auth.db"
     auth_cookie_secure: bool = False
     auth_session_ttl_seconds: int = 86400
+    init_admin_username: str | None = None
+    init_admin_password: str | None = None
+    admin_bootstrap_enabled: bool = False
 
 
 @lru_cache

@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.bootstrap import bootstrap_admin
 from app.config import get_settings
 from app.database import init_db
 from app.routers import auth as auth_router
@@ -12,6 +13,7 @@ from app.session_store import InMemorySessionStore
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    bootstrap_admin()
     ttl = get_settings().auth_session_ttl_seconds
     app.state.session_store = InMemorySessionStore(ttl)
     yield
