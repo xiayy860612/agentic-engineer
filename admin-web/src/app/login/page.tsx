@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { authLoginUrl } from "@/lib/auth-api";
+import { authLoginUrl, authSessionUrl } from "@/lib/auth-api";
+import { setAuthState } from "@/lib/auth-state";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,6 +37,14 @@ export default function LoginPage() {
         return;
       }
       if (res.ok && data.success === true) {
+        // After login success, fetch session to get roles
+        const sessionRes = await fetch(authSessionUrl(), { credentials: "include" });
+        if (sessionRes.ok) {
+          const sessionData = (await sessionRes.json()) as { username?: string; roles?: string[] };
+          const sessionUsername = sessionData.username ?? username;
+          const roles = Array.isArray(sessionData.roles) ? sessionData.roles : [];
+          setAuthState(sessionUsername, roles);
+        }
         router.replace("/dashboard");
         return;
       }

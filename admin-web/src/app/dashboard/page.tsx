@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { authLogoutUrl, authSessionUrl } from "@/lib/auth-api";
+import { clearAuthState, setAuthState } from "@/lib/auth-state";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -22,8 +23,11 @@ export default function DashboardPage() {
         router.replace("/login");
         return;
       }
-      const data = (await res.json()) as { username?: string };
-      setUsername(typeof data.username === "string" ? data.username : null);
+      const data = (await res.json()) as { username?: string; roles?: string[] };
+      const username = typeof data.username === "string" ? data.username : null;
+      const roles = Array.isArray(data.roles) ? data.roles : [];
+      setAuthState(username ?? "", roles);
+      setUsername(username);
       setChecking(false);
     }
 
@@ -35,6 +39,7 @@ export default function DashboardPage() {
   }, [router]);
 
   async function onLogout() {
+    clearAuthState();
     await fetch(authLogoutUrl(), { method: "POST", credentials: "include" });
     router.replace("/login");
   }

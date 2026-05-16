@@ -1,21 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 
-const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Login", href: "/login" },
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "About", href: "/about" },
-  { label: "Blog", href: "/blog" },
-  { label: "Contact", href: "/contact" },
-];
-
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+
+  useEffect(() => {
+    import("@/lib/auth-state").then(({ isAdmin }) => {
+      setIsAdminUser(isAdmin());
+    });
+  }, []);
+
+  const navLinks = [
+    { label: "Home", href: "/" },
+    { label: "Login", href: "/login" },
+    { label: "Dashboard", href: "/dashboard" },
+    ...(isAdminUser ? [{ label: "用户管理", href: "/users" }] : []),
+    { label: "About", href: "/about" },
+    { label: "Blog", href: "/blog" },
+    { label: "Contact", href: "/contact" },
+  ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
