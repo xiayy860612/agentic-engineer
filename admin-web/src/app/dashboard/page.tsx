@@ -1,45 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { authLogoutUrl, authSessionUrl } from "@/lib/auth-api";
+import { authSessionUrl } from "@/lib/auth-api";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [username, setUsername] = useState<string | null>(null);
-  const [checking, setChecking] = useState(true);
+  const { user, isLoggedIn, logout } = useAuth();
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function run() {
+    async function checkSession() {
       const res = await fetch(authSessionUrl(), { credentials: "include" });
-      if (cancelled) {
-        return;
-      }
       if (!res.ok) {
         router.replace("/login");
-        return;
       }
-      const data = (await res.json()) as { username?: string };
-      setUsername(typeof data.username === "string" ? data.username : null);
-      setChecking(false);
     }
 
-    void run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [router]);
+    if (!isLoggedIn) {
+      void checkSession();
+    }
+  }, [isLoggedIn, router]);
 
   async function onLogout() {
-    await fetch(authLogoutUrl(), { method: "POST", credentials: "include" });
+    await logout();
     router.replace("/login");
   }
 
-  if (checking) {
+  if (!isLoggedIn) {
     return (
       <div
         className="flex flex-1 items-center justify-center px-4 py-24 text-muted-foreground"
@@ -63,7 +52,7 @@ export default function DashboardPage() {
           已登录占位页（阶段 0）。当前用户：
           <span className="font-medium text-foreground" data-testid="dashboard-username">
             {" "}
-            {username ?? "—"}
+            {user?.username ?? "—"}
           </span>
         </p>
         <div className="mt-6">

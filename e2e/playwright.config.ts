@@ -21,7 +21,7 @@ export default defineConfig({
       },
     },
     {
-      name: "Mobile Safari",
+      name: "Mobile",
       use: { ...devices["iPhone 13"] },
     },
   ],

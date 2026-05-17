@@ -31,3 +31,6 @@ htmlcov/
 
 # OS / IDE
 .DS_Store
+
+# docs/superpowers/**
+openspec/changes/**

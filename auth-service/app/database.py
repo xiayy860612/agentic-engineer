@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -67,3 +67,29 @@ def reset_engine_for_tests() -> None:
         _engine.dispose()
     _engine = None
     _SessionLocal = None
+
+
+def seed_roles_and_admin() -> None:
+    """Create default roles (super_admin, user) and admin user if they don't exist."""
+    from app.models import Role, User
+    from app.security import hash_password
+
+    db = get_session_local()()
+    try:
+        # Create roles if they don't exist
+        if db.scalars(select(Role).where(Role.name == "super_admin")).first() is None:
+            db.add(Role(name="super_admin"))
+        if db.scalars(select(Role).where(Role.name == "user")).first() is None:
+            db.add(Role(name="user"))
+        db.commit()
+
+        # Create admin user if doesn't exist
+        if db.scalars(select(User).where(User.username == "admin")).first() is None:
+            admin_role = db.scalars(select(Role).where(Role.name == "super_admin")).first()
+            admin_user = User(username="admin", password_hash=hash_password("admin_secret"), is_active=True)
+            if admin_role:
+                admin_user.roles.append(admin_role)
+            db.add(admin_user)
+            db.commit()
+    finally:
+        db.close()

@@ -37,22 +37,27 @@ def login(
     request: Request,
     db: Annotated[Session, Depends(get_db)],
 ) -> JSONResponse:
-    settings = get_settings()
     user = db.scalars(select(User).where(User.username == payload.username)).first()
     if user is None or not verify_password(payload.password, user.password_hash):
         return JSONResponse(status_code=401, content=INVALID_CREDENTIALS_BODY)
 
+    if not user.is_active:
+        return JSONResponse(
+            status_code=403,
+            content={"error": "account_disabled", "message": "账户已停用"},
+        )
+
     store = request.app.state.session_store
-    token = store.create(user.id, user.username)
+    token = store.create(user.id, user.username, roles=[r.name for r in user.roles])
     resp = JSONResponse(status_code=200, content={"success": True})
     resp.set_cookie(
         key="ae_session",
         value=token,
         httponly=True,
-        secure=settings.auth_cookie_secure,
+        secure=get_settings().auth_cookie_secure,
         samesite="lax",
         path="/",
-        max_age=settings.auth_session_ttl_seconds,
+        max_age=get_settings().auth_session_ttl_seconds,
     )
     return resp
 
@@ -98,4 +103,4 @@ def read_session(request: Request) -> JSONResponse:
             status_code=401,
             content={"error": "unauthenticated", "message": "未登录或会话已失效"},
         )
-    return JSONResponse(status_code=200, content={"username": rec.username})
+    return JSONResponse(status_code=200, content={"username": rec.username, "roles": rec.roles})

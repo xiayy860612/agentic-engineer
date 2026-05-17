@@ -39,7 +39,7 @@ def test_session_endpoint_after_login(client: TestClient) -> None:
     assert client.cookies.get("ae_session")
     me = client.get("/api/v1/auth/session")
     assert me.status_code == 200
-    assert me.json() == {"username": "carol"}
+    assert me.json() == {"username": "carol", "roles": []}
 
 
 def test_logout_clears_session(client: TestClient) -> None:

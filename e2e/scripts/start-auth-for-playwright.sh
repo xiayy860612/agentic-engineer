@@ -21,5 +21,27 @@ if ! command -v uv >/dev/null 2>&1; then
 fi
 
 uv sync --extra dev
-uv run auth-create-user --username e2e_admin --password 'E2E_Pass_123'
+
+# Seed admin + user roles for E2E (must match constants in *.spec.ts)
+uv run auth-create-user --username e2e_admin --password 'E2E_Pass_123' --roles admin
+uv run auth-create-user --username e2e_user --password 'E2E_User_123' --roles user
+
+# Create an inactive user for session-roles SC3 tests
+uv run python -c "
+import sys; sys.path.insert(0, '.')
+from app.database import get_session_local
+from app.models import Role, User
+from app.security import hash_password
+db = get_session_local()()
+try:
+    r = db.scalars(db.query(Role).filter(Role.name=='user')).first()
+    if r is None:
+        r = Role(name='user'); db.add(r)
+    u = User(username='e2e_inactive', password_hash=hash_password('E2E_Inactive_123'), roles=[r], is_active=False)
+    db.add(u); db.commit()
+    print('Created e2e_inactive user')
+finally:
+    db.close()
+"
+
 exec uv run uvicorn app.main:app --host 127.0.0.1 --port 8000

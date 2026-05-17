@@ -4,12 +4,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(env_file_encoding="utf-8", extra="ignore")
 
     admin_web_origin: str = "http://localhost:3000"
     auth_database_url: str = "sqlite:///./data/auth.db"
     auth_cookie_secure: bool = False
     auth_session_ttl_seconds: int = 86400
+    init_admin_username: str | None = None
+    init_admin_password: str | None = None
+    admin_bootstrap_enabled: bool = False
 
 
 @lru_cache
