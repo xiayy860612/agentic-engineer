@@ -2,7 +2,16 @@
 
 ## 外部依赖
 
+- openspec
+  - explore
+  - propose
+  - verify，需要通过 `openspec update config` 配置后才会开启
+  - achieve
 - superpowers
+  - writing-plan
+  - subagent-driven-development
+
+
 
 ### 工具依赖
 

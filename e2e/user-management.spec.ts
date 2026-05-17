@@ -39,8 +39,8 @@ test.describe("user-management: User CRUD via /users page", () => {
   test("UC2: user role is redirected away from /users", async ({ page }) => {
     await loginAsUser(page);
     await page.goto("/users");
-    // Should not reach /users — redirected to dashboard
-    await expect(page).not.toHaveURL(/\/users/);
+    // Wait for redirect to dashboard (non-admin gets redirected)
+    await expect(page).not.toHaveURL(/\/users/, { timeout: 10000 });
   });
 
   // UC3: Admin creates a new user

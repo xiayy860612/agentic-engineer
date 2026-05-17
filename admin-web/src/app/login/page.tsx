@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { authLoginUrl, authSessionUrl } from "@/lib/auth-api";
-import { setAuthState } from "@/lib/auth-state";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +44,7 @@ export default function LoginPage() {
           const sessionData = (await sessionRes.json()) as { username?: string; roles?: string[] };
           const sessionUsername = sessionData.username ?? username;
           const roles = Array.isArray(sessionData.roles) ? sessionData.roles : [];
-          setAuthState(sessionUsername, roles);
+          login(sessionUsername, roles);
         }
         router.replace("/dashboard");
         return;

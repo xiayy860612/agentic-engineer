@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { authSessionUrl, usersListUrl, userUrl } from "@/lib/auth-api";
-import { setAuthState } from "@/lib/auth-state";
+import { usersListUrl, userUrl } from "@/lib/auth-api";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 
 interface User {
@@ -16,35 +16,25 @@ interface User {
 
 export default function UsersPage() {
   const router = useRouter();
+  const { isAdmin, user, user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState<User | null>(null);
 
   useEffect(() => {
+    // Wait for auth session to be loaded from AuthContext
+    if (user === null) return;
+    // Guard: non-admin users cannot access /users
+    if (!isAdmin) {
+      return;
+    }
+
     let cancelled = false;
 
-    async function run() {
-      const sessionRes = await fetch(authSessionUrl(), { credentials: "include" });
-      if (!sessionRes.ok) {
-        router.replace("/login");
-        return;
-      }
-      const sessionData = (await sessionRes.json()) as { username?: string; roles?: string[] };
-      const username = sessionData.username ?? "";
-      const roles = Array.isArray(sessionData.roles) ? sessionData.roles : [];
-      setAuthState(username, roles);
-
-      if (!roles.includes("admin")) {
-        router.replace("/dashboard");
-        return;
-      }
-
-      setCurrentUsername(username);
-
+    async function fetchUsers() {
       const usersRes = await fetch(usersListUrl(), { credentials: "include" });
       if (!usersRes.ok) {
         if (usersRes.status === 401) {
@@ -62,9 +52,9 @@ export default function UsersPage() {
       }
     }
 
-    void run();
+    void fetchUsers();
     return () => { cancelled = true; };
-  }, [router]);
+  }, [user, isAdmin, router]);
 
   async function handleCreate(data: { username: string; password?: string; role: string }) {
     const res = await fetch(usersListUrl(), {
@@ -108,11 +98,15 @@ export default function UsersPage() {
     return <div className="p-8 text-red-500">{error}</div>;
   }
 
+  if (!isAdmin) {
+    return <div className="p-8 text-red-500">无权访问</div>;
+  }
+
   return (
-    <div className="container px-4 py-8">
+    <div className="container px-4 py-8" data-testid="users-page">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">用户管理</h1>
-        <Button onClick={() => setShowCreate(true)}>新建用户</Button>
+        <Button onClick={() => setShowCreate(true)} data-testid="create-user-btn">新建用户</Button>
       </div>
 
       <div className="rounded-lg border border-border">
@@ -150,7 +144,7 @@ export default function UsersPage() {
                   {new Date(user.created_at).toLocaleDateString("zh-CN")}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  {user.username !== currentUsername ? (
+                  {user.username !== currentUser?.username ? (
                     <Button
                       variant="outline"
                       size="sm"
