@@ -34,3 +34,5 @@ htmlcov/
 
 # docs/superpowers/**
 openspec/changes/**
+
+*.log
