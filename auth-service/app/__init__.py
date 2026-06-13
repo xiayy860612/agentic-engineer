@@ -1,1 +1,0 @@
-"""Auth FastAPI application package."""

@@ -36,3 +36,7 @@ htmlcov/
 openspec/changes/**
 
 *.log
+
+# Claude Code — session state (generated at runtime)
+.claude/hooks/.state*
+.claude/agent-memory
