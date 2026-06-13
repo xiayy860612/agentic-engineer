@@ -15,6 +15,7 @@
 | 操作 | 路径 | 职责 |
 |------|------|------|
 | **新建** | `web/components/auth-dropdown.tsx` | Client Component，渲染已登录用户的下拉菜单（Profile 入口 + 退出登录） |
+| **新建** | `web/app/profile/layout.tsx` | 受保护页面布局，复用 ProtectedLayout 的导航栏 + AuthButton + footer 结构（与 protected/instruments 布局一致），满足 spec AC-1 |
 | **新建** | `web/app/profile/page.tsx` | Server Component，展示当前用户 email / role / sub |
 | **新建** | `web/vitest.config.ts` | Vitest 配置，jsdom 环境 + tsconfig 路径别名 |
 | **新建** | `web/test/setup.ts` | Testing Library 全局配置（`cleanup`  afterEach） |
@@ -353,6 +354,7 @@ git commit -m "feat(web): implement AuthDropdown client component"
 ## Task 4: 创建 Profile 页面
 
 **Files:**
+- Create: `web/app/profile/layout.tsx`
 - Create: `web/app/profile/page.tsx`
 
 ---
@@ -361,7 +363,72 @@ git commit -m "feat(web): implement AuthDropdown client component"
 
 ---
 
-- [ ] **Step 1: 创建 Profile 页面**
+- [ ] **Step 1: 创建 Profile 布局**
+
+创建 `web/app/profile/layout.tsx`，与 `web/app/protected/layout.tsx` 内容一致，仅函数名改为 `ProfileLayout`。理由：spec AC-1 要求 Profile 页面渲染 ProtectedLayout（导航栏 + AuthButton + footer），但 Next.js App Router 不允许跨路由直接复用 layout 文件；遵循现有仓库模式（`ProtectedLayout` 与 `InstrumentsLayout` 已是近似副本），新建一个同结构的 `ProfileLayout`。
+后续清理可考虑提取 `<NavChrome>` / `<Footer>` 共享组件统一三处布局。
+
+```tsx
+import { DeployButton } from "@/components/deploy-button";
+import { EnvVarWarning } from "@/components/env-var-warning";
+import { AuthButton } from "@/components/auth-button";
+import { ThemeSwitcher } from "@/components/theme-switcher";
+import { hasEnvVars } from "@/lib/utils";
+import Link from "next/link";
+import { Suspense } from "react";
+
+export default function ProfileLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <main className="min-h-screen flex flex-col items-center">
+      <div className="flex-1 w-full flex flex-col gap-20 items-center">
+        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
+          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
+            <div className="flex gap-5 items-center font-semibold">
+              <Link href={"/"}>Next.js Supabase Starter</Link>
+              <div className="flex items-center gap-2">
+                <DeployButton />
+              </div>
+            </div>
+            {!hasEnvVars ? (
+              <EnvVarWarning />
+            ) : (
+              <Suspense>
+                <AuthButton />
+              </Suspense>
+            )}
+          </div>
+        </nav>
+        <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
+          {children}
+        </div>
+
+        <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
+          <p>
+            Powered by{" "}
+            <a
+              href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
+              target="_blank"
+              className="font-bold hover:underline"
+              rel="noreferrer"
+            >
+              Supabase
+            </a>
+          </p>
+          <ThemeSwitcher />
+        </footer>
+      </div>
+    </main>
+  );
+}
+```
+
+---
+
+- [ ] **Step 2: 创建 Profile 页面**
 
 创建 `web/app/profile/page.tsx`：
 
@@ -440,7 +507,7 @@ export default function ProfilePage() {
 
 ---
 
-- [ ] **Step 2: 运行 lint 和 typecheck**
+- [ ] **Step 3: 运行 lint 和 typecheck**
 
 Run:
 
@@ -452,7 +519,7 @@ Expected: 无 lint 错误，构建成功。若 `KeyRound` 不存在于当前 luc
 
 ---
 
-- [ ] **Step 3: 提交**
+- [ ] **Step 4: 提交**
 
 ```bash
 git add web/app/profile/
